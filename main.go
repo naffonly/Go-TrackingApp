@@ -5,6 +5,10 @@ import (
 	configure "trackingApp/config"
 	"trackingApp/middleware"
 
+	locationHandler "trackingApp/features/location/handler"
+	locationRepository "trackingApp/features/location/repository"
+	locationService "trackingApp/features/location/service"
+
 	companyHandler "trackingApp/features/company/handler"
 	companyRepository "trackingApp/features/company/repository"
 	companyService "trackingApp/features/company/service"
@@ -46,8 +50,12 @@ func SetupAppRouter() *gin.Engine {
 	companySvc := companyService.NewCompanyServiceInterface(companyRepo)
 	companyHdlr := companyHandler.NewCompanyHanlderImpl(companySvc)
 
+	locationRepo := locationRepository.NewLocationRepositoryImpl(db)
+	locationSvc := locationService.NewLocationSeriveImpl(locationRepo)
+	locationHdlr := locationHandler.NewLocationHandlerInterface(locationSvc)
+
 	routes.InitRoutesPublic(public, authHdlr)
-	routes.InitRoutesPrivate(protected, userHdlr, authHdlr, companyHdlr)
+	routes.InitRoutesPrivate(protected, userHdlr, authHdlr, companyHdlr, locationHdlr)
 
 	router.Run(config.SeverPort)
 	return router

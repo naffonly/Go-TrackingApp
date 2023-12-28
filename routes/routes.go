@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	autHandler "trackingApp/features/auth/handler"
 	companyHandler "trackingApp/features/company/handler"
+	locationHandler "trackingApp/features/location/handler"
 	"trackingApp/features/user/handler"
 )
 
@@ -11,10 +12,11 @@ func InitRoutesPublic(r *gin.RouterGroup, autHandler autHandler.AuthHandlerInter
 	authRoutes(r, autHandler)
 }
 
-func InitRoutesPrivate(r *gin.RouterGroup, user handler.UserHandlerInterface, auth autHandler.AuthHandlerInterface, company companyHandler.CompanyHandlerInterface) {
+func InitRoutesPrivate(r *gin.RouterGroup, user handler.UserHandlerInterface, auth autHandler.AuthHandlerInterface, company companyHandler.CompanyHandlerInterface, location locationHandler.LocationHandlerInterface) {
 	userRoutes(r, user)
 	profilRoutes(r, auth)
 	companyRoutes(r, company)
+	locationRoutes(r, location)
 }
 
 func userRoutes(router *gin.RouterGroup, handlerInterface handler.UserHandlerInterface) {
@@ -39,5 +41,12 @@ func companyRoutes(router *gin.RouterGroup, handlerInterface companyHandler.Comp
 	router.POST("/company", handlerInterface.Insert())
 	router.PUT("/company/:id", handlerInterface.Update())
 	router.DELETE("/company/:id", handlerInterface.Delete())
+}
 
+func locationRoutes(router *gin.RouterGroup, handlerInterface locationHandler.LocationHandlerInterface) {
+	router.GET("/location", handlerInterface.FindAll())
+	router.GET("/location/:id", handlerInterface.FindByID())
+	router.POST("/location", handlerInterface.Insert())
+	router.PUT("/location/:id", handlerInterface.Update())
+	router.DELETE("/location/:id", handlerInterface.Delete())
 }
