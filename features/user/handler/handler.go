@@ -24,10 +24,30 @@ type UserHandlerInterface interface {
 	Insert() gin.HandlerFunc
 	Update() gin.HandlerFunc
 	Delete() gin.HandlerFunc
+	GetCurrentCompany() gin.HandlerFunc
 }
 
 func NewUserHandlerInterface(service service.UserServiceInterface) UserHandlerInterface {
 	return &userHandlerImpl{Service: service}
+}
+
+func (handler *userHandlerImpl) GetCurrentCompany() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ownerId, ownerRole, err := token.ExtractTokenID(c)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, pagination.FormatResponse(err.Error(), nil, http.StatusBadRequest))
+			c.Abort()
+			return
+		}
+		result, err := handler.Service.GetCurrentCompany(ownerRole, ownerId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, pagination.FormatResponse(err.Error(), nil, http.StatusBadRequest))
+			c.Abort()
+			return
+		}
+		msg = "Data Found"
+		c.JSON(http.StatusOK, pagination.FormatResponse(msg, result, http.StatusOK))
+	}
 }
 
 func (handler *userHandlerImpl) FindAll() gin.HandlerFunc {

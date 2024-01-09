@@ -4,6 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	configure "trackingApp/config"
 	"trackingApp/middleware"
+	"trackingApp/routes"
+	"trackingApp/utils/database"
 
 	locationHandler "trackingApp/features/location/handler"
 	locationRepository "trackingApp/features/location/repository"
@@ -20,8 +22,10 @@ import (
 	userHandler "trackingApp/features/user/handler"
 	userRepository "trackingApp/features/user/repository"
 	userService "trackingApp/features/user/service"
-	"trackingApp/routes"
-	"trackingApp/utils/database"
+
+	orderHandler "trackingApp/features/order/handler"
+	orderRepository "trackingApp/features/order/repository"
+	orderService "trackingApp/features/order/service"
 )
 
 func main() {
@@ -54,8 +58,12 @@ func SetupAppRouter() *gin.Engine {
 	locationSvc := locationService.NewLocationSeriveImpl(locationRepo)
 	locationHdlr := locationHandler.NewLocationHandlerInterface(locationSvc)
 
+	orderRepo := orderRepository.NewOrderRepositoryImpl(db)
+	orderSvc := orderService.NewOrderServiceImpl(orderRepo)
+	orderHdl := orderHandler.NewOrderHandlerImpl(orderSvc)
+
 	routes.InitRoutesPublic(public, authHdlr)
-	routes.InitRoutesPrivate(protected, userHdlr, authHdlr, companyHdlr, locationHdlr)
+	routes.InitRoutesPrivate(protected, userHdlr, authHdlr, companyHdlr, locationHdlr, orderHdl)
 
 	router.Run(config.SeverPort)
 	return router

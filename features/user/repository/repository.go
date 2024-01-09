@@ -23,10 +23,22 @@ type UserRepositoryInterface interface {
 	UsernameAvailable(username string) error
 	EmailAvailable(email string) error
 	TotalData() (int64, error)
+	GetCurrentCompany(uuid string) (*userModel.User, error)
 }
 
 func NewUserRepositoryInterface(db *gorm.DB) UserRepositoryInterface {
 	return &userRepositoryImpl{DB: db}
+}
+
+func (repository *userRepositoryImpl) GetCurrentCompany(uuid string) (*userModel.User, error) {
+	var model userModel.User
+	rs := repository.DB.Preload("Company").Select("company_id", "name").Where("id =?", uuid).First(&model)
+
+	if rs.Error != nil {
+		logrus.Panic("Failed Find Data by id")
+		return nil, rs.Error
+	}
+	return &model, nil
 }
 
 func (repository *userRepositoryImpl) GetUsername(username string, data *[]userModel.User) error {

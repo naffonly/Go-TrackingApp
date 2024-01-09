@@ -15,6 +15,14 @@ type UserServiceImpl struct {
 	Repository repository.UserRepositoryInterface
 }
 
+func (service *UserServiceImpl) GetCurrentCompany(ownerRole string, ownerId string) (*userModel.User, error) {
+	rs, err := service.Repository.GetCurrentCompany(ownerId)
+	if err != nil {
+		return nil, err
+	}
+	return rs, nil
+}
+
 type UserServiceInterface interface {
 	FindAll(pagination response.QueryParam, ownerRole string, ownerId string) ([]userModel.User, *response.Pagination, error)
 	FindById(uuid string, ownerRole string, ownerId string) (*userModel.User, error)
@@ -22,6 +30,7 @@ type UserServiceInterface interface {
 	Update(payload *userModel.UserDto, uuid string, ownerRole string, ownerId string) (*userModel.UserResponse, error)
 	Delete(uuid string, ownerRole string, ownerId string) error
 	GetUsername(username string, ownerRole string, ownerId string) (*[]userModel.User, error)
+	GetCurrentCompany(ownerRole string, ownerId string) (*userModel.User, error)
 }
 
 func NewUserServiceInterface(repo repository.UserRepositoryInterface) UserServiceInterface {
@@ -38,8 +47,6 @@ func (service *UserServiceImpl) GetUsername(username string, ownerRole string, o
 	if err != nil {
 		return nil, err
 	}
-
-	//result := mapping.UserToResponse(data)
 	return &data, nil
 }
 
@@ -54,10 +61,10 @@ func (service *UserServiceImpl) FindAll(pagination response.QueryParam, ownerRol
 		return nil, nil, errors.New("get data company failed")
 
 	}
-	var logisticRes []userModel.User
+	var userRes []userModel.User
 
 	for _, value := range rs {
-		logisticRes = append(logisticRes, value)
+		userRes = append(userRes, value)
 	}
 
 	total, err := service.Repository.TotalData()
@@ -71,7 +78,7 @@ func (service *UserServiceImpl) FindAll(pagination response.QueryParam, ownerRol
 		TotalItems: total,
 	}
 
-	return logisticRes, DataResponse, nil
+	return userRes, DataResponse, nil
 }
 
 func (service *UserServiceImpl) FindById(uuid string, ownerRole string, ownerId string) (*userModel.User, error) {

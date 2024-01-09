@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"trackingApp/features/location/service"
 )
@@ -22,26 +23,31 @@ func NewLocationHandlerInterface(service service.LocationServiceInterface) Locat
 }
 
 func (l locationHandlerImpl) FindAll() gin.HandlerFunc {
-	//TODO implement me
-	panic("implement me")
+	return func(c *gin.Context) {
+		fmt.Sprintf("AAA")
+	}
 }
 
 func (l locationHandlerImpl) FindByID() gin.HandlerFunc {
-	//TODO implement me
-	panic("implement me")
+	return func(c *gin.Context) {
+		fmt.Sprintf("AAA")
+	}
 }
 
 func (l locationHandlerImpl) Insert() gin.HandlerFunc {
-	//TODO implement me
-	panic("implement me")
+	return func(c *gin.Context) {
+		fmt.Sprintf("AAA")
+	}
 }
 
 func (l locationHandlerImpl) Update() gin.HandlerFunc {
-	//TODO implement me
-	panic("implement me")
+	return func(c *gin.Context) {
+		fmt.Sprintf("AAA")
+	}
 }
 
 func (l locationHandlerImpl) Delete() gin.HandlerFunc {
-	//TODO implement me
-	panic("implement me")
+	return func(c *gin.Context) {
+		fmt.Sprintf("AAA")
+	}
 }
