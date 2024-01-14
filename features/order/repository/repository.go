@@ -14,17 +14,6 @@ type orderRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-func (repo *orderRepositoryImpl) TotalData() (int64, error) {
-	var user model.Order
-	var total int64
-	result := repo.DB.Model(&user).Count(&total)
-	if result.Error != nil {
-		return -1, result.Error
-	}
-
-	return total, nil
-}
-
 type OrderInterfaceInterface interface {
 	FindALL(param pagination.QueryParam) ([]model.Order, error)
 	FindByID(uuid string) (*model.Order, error)
@@ -47,6 +36,17 @@ func (repo *orderRepositoryImpl) GetCurrentCompany(uuid string) (*userModel.User
 		return nil, err.Error
 	}
 	return &user, nil
+}
+
+func (repo *orderRepositoryImpl) TotalData() (int64, error) {
+	var user model.Order
+	var total int64
+	result := repo.DB.Model(&user).Count(&total)
+	if result.Error != nil {
+		return -1, result.Error
+	}
+
+	return total, nil
 }
 
 func (repo *orderRepositoryImpl) GetCustomerName(name string, data *[]model.Order) error {

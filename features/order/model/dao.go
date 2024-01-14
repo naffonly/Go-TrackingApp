@@ -11,7 +11,7 @@ type Order struct {
 	ID                string            `json:"id" gorm:"primaryKey; type:varchar(255)"`
 	CompanyID         string            `json:"company_id"`
 	Identity          string            `json:"identity" gorm:"type:varchar(16);default:null"`
-	CustomerName      string            `json:"customer_name" gorm:"type:varchar(100);default:null"`
+	Recipients        string            `json:"recipients" gorm:"type:varchar(100);default:null"`
 	PickupLocationID  string            `json:"pickup_location_id"`
 	DropoffLocationID string            `json:"dropoff_location_id"`
 	CreateID          string            `json:"create_id"`

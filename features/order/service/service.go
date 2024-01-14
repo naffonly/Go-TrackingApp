@@ -83,7 +83,7 @@ func (service *orderServiceImpl) Insert(payload *model.OrderDTO, ownerRole strin
 		Identity:          identity,
 		DropoffLocationID: uuidDrop.String(),
 		PickupLocationID:  uuidPick.String(),
-		CustomerName:      payload.CustomerName,
+		Recipients:        payload.Recipients,
 		CreateID:          ownerId,
 		DropoffLocation: model2.Location{
 			ID:        uuidDrop.String(),
@@ -113,7 +113,7 @@ func (service *orderServiceImpl) Insert(payload *model.OrderDTO, ownerRole strin
 func (service *orderServiceImpl) Update(payload *model.OrderDTO, uuid string, ownerRole string, ownerId string) (*model.Order, error) {
 
 	newPayload := model.Order{
-		CustomerName: payload.CustomerName,
+		Recipients: payload.Recipients,
 		DropoffLocation: model2.Location{
 			Lat:  payload.DropoffLocation.Lat,
 			Lon:  payload.DropoffLocation.Lon,
