@@ -69,9 +69,9 @@ func (handler *orderHandlerImpl) FindAll() gin.HandlerFunc {
 
 		result, paginationRes, err := handler.Service.FindAll(queryParam, ownerRole, ownerId)
 		if err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Failed",
-			})
+			c.JSON(http.StatusBadRequest, pagination.FormatResponse(err.Error(), nil, http.StatusBadRequest))
+			c.Abort()
+			return
 		}
 		data := pagination.FormatPaginationResponse(
 			"Success Find All Data",

@@ -7,10 +7,11 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"trackingApp/config"
-	companyModel "trackingApp/features/company/model"
-	"trackingApp/features/location/model"
-	model2 "trackingApp/features/order/model"
-	userModel "trackingApp/features/user/model"
+	company "trackingApp/features/company/model"
+	location "trackingApp/features/location/model"
+	order "trackingApp/features/order/model"
+	user "trackingApp/features/user/model"
+	vehicle "trackingApp/features/vehicle/model"
 	"trackingApp/utils/password"
 )
 
@@ -34,7 +35,7 @@ func InitDB(config *config.Config) *gorm.DB {
 
 func Migration(db *gorm.DB) {
 	logrus.Info("Miggration DB")
-	errs := db.AutoMigrate(&userModel.User{}, &companyModel.Company{}, &model.Location{}, &model2.Order{})
+	errs := db.AutoMigrate(&user.User{}, &company.Company{}, &location.Location{}, &vehicle.Vehicle{}, &order.Order{})
 	if errs != nil {
 		logrus.Fatal(errs.Error())
 		return
@@ -47,7 +48,7 @@ func seederUser(db *gorm.DB) {
 	pass, _ := password.HashPassword("superadmin")
 	id, _ := uuid.NewRandom()
 
-	data := userModel.User{
+	data := user.User{
 		ID:       id.String(),
 		Username: "superadmin",
 		Name:     "SuperAdmin",

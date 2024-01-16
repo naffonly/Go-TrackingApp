@@ -80,6 +80,7 @@ func (service *orderServiceImpl) Insert(payload *model.OrderDTO, ownerRole strin
 	newPayload := model.Order{
 		ID:                uuid.String(),
 		CompanyID:         payload.CompanyID,
+		VehicleID:         payload.VehicleID,
 		Identity:          identity,
 		DropoffLocationID: uuidDrop.String(),
 		PickupLocationID:  uuidPick.String(),
@@ -114,6 +115,7 @@ func (service *orderServiceImpl) Update(payload *model.OrderDTO, uuid string, ow
 
 	newPayload := model.Order{
 		Recipients: payload.Recipients,
+		VehicleID:  payload.VehicleID,
 		DropoffLocation: model2.Location{
 			Lat:  payload.DropoffLocation.Lat,
 			Lon:  payload.DropoffLocation.Lon,

@@ -50,7 +50,7 @@ func (repo *orderRepositoryImpl) TotalData() (int64, error) {
 }
 
 func (repo *orderRepositoryImpl) GetCustomerName(name string, data *[]model.Order) error {
-	rs := repo.DB.Preload("Company").Preload("PickupLocation").Preload("DropoffLocation").Where("customer_name like ?", "%"+name+"%").Find(&data)
+	rs := repo.DB.Preload("Company").Preload("Vehicle").Preload("PickupLocation").Preload("DropoffLocation").Where("customer_name like ?", "%"+name+"%").Find(&data)
 	if rs.Error != nil {
 		return errors.New("customer not found")
 	}
@@ -62,7 +62,7 @@ func (repo *orderRepositoryImpl) FindALL(param pagination.QueryParam) ([]model.O
 
 	var offset = (param.Page - 1) * param.Size
 
-	result := repo.DB.Preload("Company").Preload("PickupLocation").Preload("DropoffLocation").Offset(offset).Limit(param.Size).Find(&payload)
+	result := repo.DB.Distinct().Preload("Company").Preload("Vehicle").Preload("PickupLocation").Preload("DropoffLocation").Offset(offset).Limit(param.Size).Find(&payload)
 	if result.Error != nil {
 		panic(result.Error)
 		return nil, result.Error
@@ -73,7 +73,7 @@ func (repo *orderRepositoryImpl) FindALL(param pagination.QueryParam) ([]model.O
 
 func (repo *orderRepositoryImpl) FindByID(uuid string) (*model.Order, error) {
 	var payload model.Order
-	rs := repo.DB.Preload("Company").Preload("PickupLocation").Preload("DropoffLocation").Where("id = ?", uuid).First(&payload)
+	rs := repo.DB.Preload("Company").Preload("Vehicle").Preload("PickupLocation").Preload("DropoffLocation").Where("id = ?", uuid).First(&payload)
 
 	if rs.Error != nil {
 		log.Println("Failed Find Data by id")

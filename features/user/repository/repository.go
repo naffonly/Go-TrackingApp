@@ -83,7 +83,10 @@ func (repository *userRepositoryImpl) FindById(uuid string) (*userModel.User, er
 }
 
 func (repository *userRepositoryImpl) Insert(payload *userModel.User) (*userModel.User, error) {
-	repository.DB.Create(&payload)
+	rs := repository.DB.Create(&payload)
+	if rs.Error != nil {
+		return nil, errors.New("failed insert data")
+	}
 	return payload, nil
 }
 

@@ -5,11 +5,13 @@ import (
 	"time"
 	company "trackingApp/features/company/model"
 	location "trackingApp/features/location/model"
+	vehicle "trackingApp/features/vehicle/model"
 )
 
 type Order struct {
 	ID                string            `json:"id" gorm:"primaryKey; type:varchar(255)"`
 	CompanyID         string            `json:"company_id"`
+	VehicleID         string            `json:"vehicle_id"`
 	Identity          string            `json:"identity" gorm:"type:varchar(16);default:null"`
 	Recipients        string            `json:"recipients" gorm:"type:varchar(100);default:null"`
 	PickupLocationID  string            `json:"pickup_location_id"`
@@ -21,4 +23,5 @@ type Order struct {
 	Company           company.Company   `json:"company" gorm:"foreignKey:CompanyID"`
 	PickupLocation    location.Location `json:"pickup_location" gorm:"foreignKey:PickupLocationID"`
 	DropoffLocation   location.Location `json:"dropoff_location" gorm:"foreignKey:DropoffLocationID"`
+	Vehicle           vehicle.Vehicle   `json:"vehicle" gorm:"foreignKey:VehicleID"`
 }

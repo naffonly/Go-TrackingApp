@@ -7,6 +7,7 @@ import (
 	locationHandler "trackingApp/features/location/handler"
 	orderHandler "trackingApp/features/order/handler"
 	"trackingApp/features/user/handler"
+	vehicleHandler "trackingApp/features/vehicle/handler"
 )
 
 func InitRoutesPublic(r *gin.RouterGroup, autHandler autHandler.AuthHandlerInterface) {
@@ -18,13 +19,15 @@ func InitRoutesPrivate(r *gin.RouterGroup,
 	auth autHandler.AuthHandlerInterface,
 	company companyHandler.CompanyHandlerInterface,
 	location locationHandler.LocationHandlerInterface,
-	order orderHandler.OrderHandlerInterface) {
-
+	order orderHandler.OrderHandlerInterface,
+	vehicle vehicleHandler.VehicleHandlerInterface,
+) {
 	userRoutes(r, user)
 	profilRoutes(r, auth)
 	companyRoutes(r, company)
 	locationRoutes(r, location)
 	orderRoutes(r, order)
+	vehicleRoutes(r, vehicle)
 }
 
 func userRoutes(router *gin.RouterGroup, handlerInterface handler.UserHandlerInterface) {
@@ -66,4 +69,11 @@ func orderRoutes(router *gin.RouterGroup, handlerInterface orderHandler.OrderHan
 	router.POST("/order", handlerInterface.Insert())
 	router.PUT("/order/:id", handlerInterface.Update())
 	router.DELETE("/order/:id", handlerInterface.Delete())
+}
+func vehicleRoutes(router *gin.RouterGroup, handlerInterface vehicleHandler.VehicleHandlerInterface) {
+	router.GET("/vehicle", handlerInterface.FindAll())
+	router.GET("/vehicle/:id", handlerInterface.FindByID())
+	router.POST("/vehicle", handlerInterface.Insert())
+	router.PUT("/vehicle/:id", handlerInterface.Update())
+	router.DELETE("/vehicle/:id", handlerInterface.Delete())
 }
