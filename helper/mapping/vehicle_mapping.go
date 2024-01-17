@@ -16,7 +16,6 @@ func VehicleToResponse(payload *model.Vehicle) *model.VehicleResponse {
 func DtoToVehicle(payload *model.VehicleDTO, owner string, uuid string) *model.Vehicle {
 	return &model.Vehicle{
 		ID:         uuid,
-		CompanyID:  payload.CompanyID,
 		PlatNumber: payload.PlatNumber,
 		CreateID:   owner,
 	}

@@ -14,25 +14,15 @@ type vehicleRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-func (repo *vehicleRepositoryImpl) GetCompanyID(uuid string) (*userModel.User, error) {
-	var user userModel.User
-	rs := repo.DB.Where("id=?", uuid).First(&user)
-	if rs.Error != nil {
-		logrus.Panic("Errors : ", rs.Error)
-		return nil, errors.New("failed find data :")
-	}
-	return &user, nil
-}
-
 type VehicleRpositoryInterface interface {
-	FindAll(params pagination.QueryParam) ([]model.Vehicle, error)
-	FindByID(uuid string) (*model.Vehicle, error)
+	FindAll(params pagination.QueryParam, company string) ([]model.Vehicle, error)
+	FindByID(uuid string, company string) (*model.Vehicle, error)
 	Insert(payload *model.Vehicle) (*model.Vehicle, error)
 	Update(payload *model.Vehicle, uuid string) (*model.Vehicle, error)
 	Delete(uuid string) error
-	TotalData() (int64, error)
+	TotalData(company string) (int64, error)
 	GetPlatNumber(plat string, payload *[]model.Vehicle) error
-	GetCompanyID(uuid string) (*userModel.User, error)
+	GetCompanyUser(uuid string) (*userModel.User, error)
 	ValidationPlatNumber(plat string) error
 }
 
@@ -48,11 +38,21 @@ func (repo *vehicleRepositoryImpl) ValidationPlatNumber(plat string) error {
 	return nil
 }
 
-func (repo *vehicleRepositoryImpl) FindAll(params pagination.QueryParam) ([]model.Vehicle, error) {
+func (repo *vehicleRepositoryImpl) GetCompanyUser(uuid string) (*userModel.User, error) {
+	var user userModel.User
+	rs := repo.DB.Where("id=?", uuid).First(&user)
+	if rs.Error != nil {
+		logrus.Panic("Errors : ", rs.Error)
+		return nil, errors.New("failed find data")
+	}
+	return &user, nil
+}
+
+func (repo *vehicleRepositoryImpl) FindAll(params pagination.QueryParam, company string) ([]model.Vehicle, error) {
 	var vehicle []model.Vehicle
 	var offset = (params.Page - 1) * params.Size
 
-	rs := repo.DB.Preload("Company").Offset(offset).Limit(params.Size).Find(&vehicle)
+	rs := repo.DB.Preload("Company").Where("company_id=?", company).Offset(offset).Limit(params.Size).Find(&vehicle)
 	if rs.Error != nil {
 		logrus.Panic("Failed get data")
 		return nil, rs.Error
@@ -60,9 +60,9 @@ func (repo *vehicleRepositoryImpl) FindAll(params pagination.QueryParam) ([]mode
 	return vehicle, nil
 }
 
-func (repo *vehicleRepositoryImpl) FindByID(uuid string) (*model.Vehicle, error) {
+func (repo *vehicleRepositoryImpl) FindByID(uuid string, company string) (*model.Vehicle, error) {
 	var vehicle model.Vehicle
-	rs := repo.DB.Preload("Company").Where("id =?", uuid).First(&vehicle)
+	rs := repo.DB.Preload("Company").Where("company_id=?", company).Where("id =?", uuid).First(&vehicle)
 	if rs.Error != nil {
 		log.Printf("Failed Find Data by id : %s", rs.Error)
 		return nil, rs.Error
@@ -98,10 +98,10 @@ func (repo *vehicleRepositoryImpl) Delete(uuid string) error {
 	return nil
 }
 
-func (repo *vehicleRepositoryImpl) TotalData() (int64, error) {
+func (repo *vehicleRepositoryImpl) TotalData(company string) (int64, error) {
 	var vehicle model.Vehicle
 	var total int64
-	rs := repo.DB.Model(&vehicle).Count(&total)
+	rs := repo.DB.Model(&vehicle).Where("company_id=?", company).Count(&total)
 
 	if rs.Error != nil {
 		return -1, rs.Error

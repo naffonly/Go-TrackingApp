@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	uuid2 "github.com/google/uuid"
+	"strings"
 	"trackingApp/features/vehicle/model"
 	"trackingApp/features/vehicle/repository"
 	"trackingApp/helper/mapping"
@@ -28,17 +28,21 @@ func NewVehicleServiceImpl(repository repository.VehicleRpositoryInterface) Vehi
 }
 
 func (service *vehicleServiceImpl) FindAll(param pagination.QueryParam, ownerRole string, ownerId string) ([]model.Vehicle, *pagination.Pagination, error) {
-	rs, err := service.repository.FindAll(param)
+
+	user, err := service.repository.GetCompanyUser(ownerId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	rs, err := service.repository.FindAll(param, user.CompanyID)
 	if err != nil {
 		return nil, nil, errors.New("get data failed")
 	}
 	var dataVehicle []model.Vehicle
-	for i, value := range rs {
+	for _, value := range rs {
 		dataVehicle = append(dataVehicle, value)
-		fmt.Println(i, ": ", rs)
-
 	}
-	total, err := service.repository.TotalData()
+	total, err := service.repository.TotalData(user.CompanyID)
 	if err != nil {
 		return nil, nil, errors.New("get total data failed")
 	}
@@ -60,7 +64,12 @@ func (service *vehicleServiceImpl) FindByPlatNumber(platNumber string, ownerRole
 }
 
 func (service *vehicleServiceImpl) FindById(uuid string, ownerRole string, ownerId string) (*model.Vehicle, error) {
-	rs, err := service.repository.FindByID(uuid)
+	user, err := service.repository.GetCompanyUser(ownerId)
+	if err != nil {
+		return nil, err
+	}
+
+	rs, err := service.repository.FindByID(uuid, user.CompanyID)
 	if err != nil {
 		return nil, errors.New("find data failed")
 	}
@@ -69,12 +78,24 @@ func (service *vehicleServiceImpl) FindById(uuid string, ownerRole string, owner
 
 func (service *vehicleServiceImpl) Insert(payload *model.VehicleDTO, ownerRole string, ownerId string) (*model.VehicleResponse, error) {
 	uuid, _ := uuid2.NewRandom()
+
+	user, err := service.repository.GetCompanyUser(ownerId)
+	if err != nil {
+		return nil, err
+	}
+
 	newPayload := model.Vehicle{
 		ID:         uuid.String(),
-		CompanyID:  payload.CompanyID,
-		PlatNumber: payload.PlatNumber,
+		CompanyID:  user.CompanyID,
+		PlatNumber: strings.ToUpper(payload.PlatNumber),
 		CreateID:   ownerId,
 	}
+
+	errs := service.repository.ValidationPlatNumber(newPayload.PlatNumber)
+	if errs != nil {
+		return nil, errs
+	}
+
 	rs, err := service.repository.Insert(&newPayload)
 	if err != nil {
 		return nil, errors.New("failed insert data")
@@ -85,10 +106,16 @@ func (service *vehicleServiceImpl) Insert(payload *model.VehicleDTO, ownerRole s
 }
 
 func (service *vehicleServiceImpl) Update(payload *model.VehicleDTO, uuid string, ownerRole string, ownerId string) (*model.Vehicle, error) {
+
 	newPayload := &model.Vehicle{
-		CompanyID:  payload.CompanyID,
-		PlatNumber: payload.PlatNumber,
+		PlatNumber: strings.ToUpper(payload.PlatNumber),
 	}
+
+	errs := service.repository.ValidationPlatNumber(newPayload.PlatNumber)
+	if errs != nil {
+		return nil, errs
+	}
+
 	rs, err := service.repository.Update(newPayload, uuid)
 	if err != nil {
 		return nil, errors.New("failed update data")
