@@ -15,13 +15,13 @@ type orderRepositoryImpl struct {
 }
 
 type OrderInterfaceInterface interface {
-	FindALL(param pagination.QueryParam) ([]model.Order, error)
-	FindByID(uuid string) (*model.Order, error)
+	FindALL(param pagination.QueryParam, company string) ([]model.Order, error)
+	FindByID(uuid string, company string) (*model.Order, error)
 	Insert(payload *model.Order) (*model.Order, error)
 	Update(payload *model.Order, uuid string) (*model.Order, error)
 	Delete(uuid string) error
 	GetCustomerName(name string, data *[]model.Order) error
-	TotalData() (int64, error)
+	TotalData(company string) (int64, error)
 	GetCurrentCompany(uuid string) (*userModel.User, error)
 }
 
@@ -31,17 +31,17 @@ func NewOrderRepositoryImpl(Db *gorm.DB) OrderInterfaceInterface {
 
 func (repo *orderRepositoryImpl) GetCurrentCompany(uuid string) (*userModel.User, error) {
 	var user userModel.User
-	err := repo.DB.Model(&userModel.User{}).Select("company_id").Where("id =?", uuid).First(&user)
-	if err != nil {
+	err := repo.DB.Where("id =?", uuid).First(&user)
+	if err.Error != nil {
 		return nil, err.Error
 	}
 	return &user, nil
 }
 
-func (repo *orderRepositoryImpl) TotalData() (int64, error) {
+func (repo *orderRepositoryImpl) TotalData(company string) (int64, error) {
 	var user model.Order
 	var total int64
-	result := repo.DB.Model(&user).Count(&total)
+	result := repo.DB.Model(&user).Where("company_id=?", company).Count(&total)
 	if result.Error != nil {
 		return -1, result.Error
 	}
@@ -57,12 +57,12 @@ func (repo *orderRepositoryImpl) GetCustomerName(name string, data *[]model.Orde
 	return nil
 }
 
-func (repo *orderRepositoryImpl) FindALL(param pagination.QueryParam) ([]model.Order, error) {
+func (repo *orderRepositoryImpl) FindALL(param pagination.QueryParam, company string) ([]model.Order, error) {
 	var payload []model.Order
 
 	var offset = (param.Page - 1) * param.Size
 
-	result := repo.DB.Distinct().Preload("Company").Preload("Vehicle").Preload("PickupLocation").Preload("DropoffLocation").Offset(offset).Limit(param.Size).Find(&payload)
+	result := repo.DB.Distinct().Preload("Company").Preload("Vehicle").Preload("PickupLocation").Preload("DropoffLocation").Where("company_id=?", company).Offset(offset).Limit(param.Size).Find(&payload)
 	if result.Error != nil {
 		panic(result.Error)
 		return nil, result.Error
@@ -71,9 +71,9 @@ func (repo *orderRepositoryImpl) FindALL(param pagination.QueryParam) ([]model.O
 	return payload, nil
 }
 
-func (repo *orderRepositoryImpl) FindByID(uuid string) (*model.Order, error) {
+func (repo *orderRepositoryImpl) FindByID(uuid string, company string) (*model.Order, error) {
 	var payload model.Order
-	rs := repo.DB.Preload("Company").Preload("Vehicle").Preload("PickupLocation").Preload("DropoffLocation").Where("id = ?", uuid).First(&payload)
+	rs := repo.DB.Preload("Company").Preload("Vehicle").Preload("PickupLocation").Preload("DropoffLocation").Where("id = ?", uuid).Where("company_id=?", company).First(&payload)
 
 	if rs.Error != nil {
 		log.Println("Failed Find Data by id")

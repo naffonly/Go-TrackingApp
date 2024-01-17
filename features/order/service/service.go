@@ -28,8 +28,14 @@ func NewOrderServiceImpl(repo repository.OrderInterfaceInterface) OrderServiceIn
 }
 
 func (service *orderServiceImpl) FindAll(param pagination.QueryParam, ownerRole string, ownerId string) ([]model.Order, *pagination.Pagination, error) {
-	rs, err := service.Repository.FindALL(param)
+
+	user, err := service.Repository.GetCurrentCompany(ownerId)
 	if err != nil {
+		return nil, nil, err
+	}
+
+	rs, errs := service.Repository.FindALL(param, user.CompanyID)
+	if errs != nil {
 		return nil, nil, errors.New("get data company failed")
 	}
 	var orderRes []model.Order
@@ -38,7 +44,7 @@ func (service *orderServiceImpl) FindAll(param pagination.QueryParam, ownerRole 
 		orderRes = append(orderRes, value)
 	}
 
-	total, err := service.Repository.TotalData()
+	total, err := service.Repository.TotalData(user.CompanyID)
 	if err != nil {
 		return nil, nil, errors.New("get total menu failed")
 	}
@@ -63,7 +69,12 @@ func (service *orderServiceImpl) GetCustomerName(name string, ownerRole string, 
 }
 
 func (service *orderServiceImpl) FindById(uuid string, ownerRole string, ownerId string) (*model.Order, error) {
-	rs, err := service.Repository.FindByID(uuid)
+	user, err := service.Repository.GetCurrentCompany(ownerId)
+	if err != nil {
+		return nil, err
+	}
+
+	rs, err := service.Repository.FindByID(uuid, user.CompanyID)
 	if err != nil {
 		return nil, err
 	}
