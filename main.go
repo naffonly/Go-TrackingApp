@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	configure "trackingApp/config"
+	handler2 "trackingApp/features/geoapify/handler"
 	"trackingApp/features/vehicle/handler"
 	"trackingApp/features/vehicle/repository"
 	"trackingApp/features/vehicle/service"
@@ -68,8 +69,10 @@ func SetupAppRouter() *gin.Engine {
 	vehicleRepo := repository.NewVehicleRepositoryImpl(db)
 	vehicleSvc := service.NewVehicleServiceImpl(vehicleRepo)
 	vehicleHhl := handler.NewVehicleHandlerImpl(vehicleSvc)
+	//Geo
+	geoHandler := handler2.NewGeoapify(db, config.GeoKey)
 
-	routes.InitRoutesPublic(public, authHdlr)
+	routes.InitRoutesPublic(public, authHdlr, geoHandler)
 	routes.InitRoutesPrivate(protected, userHdlr, authHdlr, companyHdlr, locationHdlr, orderHdl, vehicleHhl)
 
 	router.Run(config.SeverPort)

@@ -13,6 +13,7 @@ type Config struct {
 	DBHost     string
 	DBName     string
 	SeverPort  string
+	GeoKey     string
 }
 
 func InitConfig() *Config {
@@ -51,6 +52,9 @@ func loadConfig() *Config {
 	}
 	if value, found := os.LookupEnv("SERVER_PORT"); found {
 		result.SeverPort = value
+	}
+	if value, found := os.LookupEnv("GEOAPIFY_KEY"); found {
+		result.GeoKey = value
 	}
 
 	return result

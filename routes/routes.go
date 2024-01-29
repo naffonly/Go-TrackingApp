@@ -4,14 +4,16 @@ import (
 	"github.com/gin-gonic/gin"
 	autHandler "trackingApp/features/auth/handler"
 	companyHandler "trackingApp/features/company/handler"
+	geoHandler "trackingApp/features/geoapify/handler"
 	locationHandler "trackingApp/features/location/handler"
 	orderHandler "trackingApp/features/order/handler"
 	"trackingApp/features/user/handler"
 	vehicleHandler "trackingApp/features/vehicle/handler"
 )
 
-func InitRoutesPublic(r *gin.RouterGroup, autHandler autHandler.AuthHandlerInterface) {
+func InitRoutesPublic(r *gin.RouterGroup, autHandler autHandler.AuthHandlerInterface, geoHandler geoHandler.GeoapifyInterface) {
 	authRoutes(r, autHandler)
+	geoRoutes(r, geoHandler)
 }
 
 func InitRoutesPrivate(r *gin.RouterGroup,
@@ -41,6 +43,10 @@ func userRoutes(router *gin.RouterGroup, handlerInterface handler.UserHandlerInt
 
 func authRoutes(router *gin.RouterGroup, handlerInterface autHandler.AuthHandlerInterface) {
 	router.POST("/login", handlerInterface.Login())
+}
+
+func geoRoutes(router *gin.RouterGroup, handlerInterface geoHandler.GeoapifyInterface) {
+	router.POST("/geo", handlerInterface.Insert())
 }
 
 func profilRoutes(router *gin.RouterGroup, handlerInterface autHandler.AuthHandlerInterface) {
