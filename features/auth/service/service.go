@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
 	"trackingApp/features/auth/model"
 	"trackingApp/features/auth/repository"
@@ -12,6 +14,7 @@ import (
 
 type AuthServiceImpl struct {
 	Respository repository.AuthRepositoryInterface
+	Validation  *validator.Validate
 }
 
 type AuthServiceInterface interface {
@@ -19,11 +22,15 @@ type AuthServiceInterface interface {
 	CurrentUser(uuid string) (*userModel.User, error)
 }
 
-func NewAuthService(repo repository.AuthRepositoryInterface) AuthServiceInterface {
-	return &AuthServiceImpl{Respository: repo}
+func NewAuthService(repo repository.AuthRepositoryInterface, valid *validator.Validate) AuthServiceInterface {
+	return &AuthServiceImpl{Respository: repo, Validation: valid}
 }
 
 func (service *AuthServiceImpl) Login(payload *model.LoginDto) (*model.LoginResponse, error) {
+	err := service.Validation.Struct(payload)
+	if err != nil {
+		return nil, errors.New("validation failed please check your input and try again")
+	}
 	rs, err := service.Respository.LoginCheck(payload)
 	if err != nil {
 		return nil, err

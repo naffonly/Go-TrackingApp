@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/go-playground/validator/v10"
 	uuid2 "github.com/google/uuid"
 	"strconv"
 	"trackingApp/features/location/model"
@@ -12,6 +13,7 @@ import (
 
 type locationServiceImpl struct {
 	Repository repository.LocationRepositoryInterface
+	Validation *validator.Validate
 }
 
 type LocationServiceInterface interface {
@@ -23,8 +25,11 @@ type LocationServiceInterface interface {
 	FindByNote(note string, ownerRole string, ownerId string) (*[]model.Location, error)
 }
 
-func NewLocationSeriveImpl(repository repository.LocationRepositoryInterface) LocationServiceInterface {
-	return &locationServiceImpl{Repository: repository}
+func NewLocationSeriveImpl(repository repository.LocationRepositoryInterface, valid *validator.Validate) LocationServiceInterface {
+	return &locationServiceImpl{
+		Repository: repository,
+		Validation: valid,
+	}
 }
 
 func (service *locationServiceImpl) FindByNote(note string, ownerRole string, ownerId string) (*[]model.Location, error) {
@@ -64,7 +69,7 @@ func (service *locationServiceImpl) FindAll(pagination response.QueryParam, owne
 		locRes = append(locRes, value)
 	}
 
-	total, err := service.Repository.TotalData()
+	total, err := service.Repository.TotalData(user.CompanyID)
 	if err != nil {
 		return nil, nil, errors.New("get total menu failed")
 	}
@@ -95,6 +100,11 @@ func (service *locationServiceImpl) FIndByID(uuid string, ownerRole string, owne
 
 func (service *locationServiceImpl) Insert(payload *model.LocationDTO, ownerRole string, ownerId string) (*model.Location, error) {
 
+	err := service.Validation.Struct(payload)
+	if err != nil {
+		return nil, errors.New("validation failed please check your input and try again")
+	}
+
 	uuid, _ := uuid2.NewRandom()
 	data := mapping.DtoToLocation(payload, uuid.String())
 
@@ -107,6 +117,11 @@ func (service *locationServiceImpl) Insert(payload *model.LocationDTO, ownerRole
 }
 
 func (service *locationServiceImpl) Update(payload *model.LocationDTO, uuid string, ownerRole string, ownerId string) (*model.LocationResponse, error) {
+	err := service.Validation.Struct(payload)
+
+	if err != nil {
+		return nil, errors.New("validation failed please check your input and try again")
+	}
 
 	newPayload := model.Location{
 		Name: payload.Name,

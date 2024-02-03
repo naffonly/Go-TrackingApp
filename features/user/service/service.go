@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/go-playground/validator/v10"
 	uuid2 "github.com/google/uuid"
 	"strconv"
 	userModel "trackingApp/features/user/model"
@@ -13,6 +14,7 @@ import (
 
 type UserServiceImpl struct {
 	Repository repository.UserRepositoryInterface
+	Validation *validator.Validate
 }
 
 func (service *UserServiceImpl) GetCurrentCompany(ownerRole string, ownerId string) (*userModel.User, error) {
@@ -33,8 +35,11 @@ type UserServiceInterface interface {
 	GetCurrentCompany(ownerRole string, ownerId string) (*userModel.User, error)
 }
 
-func NewUserServiceInterface(repo repository.UserRepositoryInterface) UserServiceInterface {
-	return &UserServiceImpl{Repository: repo}
+func NewUserServiceInterface(repo repository.UserRepositoryInterface, valid *validator.Validate) UserServiceInterface {
+	return &UserServiceImpl{
+		Repository: repo,
+		Validation: valid,
+	}
 }
 func (service *UserServiceImpl) GetUsername(username string, ownerRole string, ownerId string) (*[]userModel.User, error) {
 	owner, _ := strconv.Atoi(ownerRole)
@@ -56,7 +61,12 @@ func (service *UserServiceImpl) FindAll(pagination response.QueryParam, ownerRol
 		return nil, nil, errors.New("your not allowed")
 	}
 
-	rs, err := service.Repository.FindAll(pagination)
+	user, err := service.Repository.GetCurrentCompany(ownerId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	rs, err := service.Repository.FindAll(pagination, user.CompanyID)
 	if err != nil {
 		return nil, nil, errors.New("get data company failed")
 
@@ -67,7 +77,7 @@ func (service *UserServiceImpl) FindAll(pagination response.QueryParam, ownerRol
 		userRes = append(userRes, value)
 	}
 
-	total, err := service.Repository.TotalData()
+	total, err := service.Repository.TotalData(user.CompanyID)
 	if err != nil {
 		return nil, nil, errors.New("get total menu failed")
 	}
@@ -121,6 +131,11 @@ func (service *UserServiceImpl) Insert(payload *userModel.UserDto, ownerRole str
 	payload.Role = 3
 	if owner != 2 {
 		payload.Role = 2
+	}
+
+	er := service.Validation.Struct(payload)
+	if er != nil {
+		return nil, errors.New("validation failed please check your input and try again")
 	}
 
 	newPayload := userModel.User{

@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	_ "github.com/go-playground/validator/v10"
 	configure "trackingApp/config"
 	handler2 "trackingApp/features/geoapify/handler"
 	"trackingApp/features/vehicle/handler"
@@ -40,6 +42,7 @@ func SetupAppRouter() *gin.Engine {
 	config := configure.InitConfig()
 	router := gin.Default()
 
+	validation := validator.New()
 	db := database.InitDB(config)
 
 	public := router.Group("/api/v1")
@@ -47,27 +50,27 @@ func SetupAppRouter() *gin.Engine {
 	protected.Use(middleware.AuthValid)
 	//Auth
 	authRepo := authRepository.NewAuthRepository(db)
-	authSvc := authService.NewAuthService(authRepo)
+	authSvc := authService.NewAuthService(authRepo, validation)
 	authHdlr := autHandler.NewAuthHandler(authSvc)
 	//User
 	userRepo := userRepository.NewUserRepositoryInterface(db)
-	userSvc := userService.NewUserServiceInterface(userRepo)
+	userSvc := userService.NewUserServiceInterface(userRepo, validation)
 	userHdlr := userHandler.NewUserHandlerInterface(userSvc)
 	//Company
 	companyRepo := companyRepository.NewCompanyRepositoryImpl(db)
-	companySvc := companyService.NewCompanyServiceInterface(companyRepo)
+	companySvc := companyService.NewCompanyServiceInterface(companyRepo, validation)
 	companyHdlr := companyHandler.NewCompanyHanlderImpl(companySvc)
 	//Location
 	locationRepo := locationRepository.NewLocationRepositoryImpl(db)
-	locationSvc := locationService.NewLocationSeriveImpl(locationRepo)
+	locationSvc := locationService.NewLocationSeriveImpl(locationRepo, validation)
 	locationHdlr := locationHandler.NewLocationHandlerInterface(locationSvc)
 	//Order
 	orderRepo := orderRepository.NewOrderRepositoryImpl(db)
-	orderSvc := orderService.NewOrderServiceImpl(orderRepo)
+	orderSvc := orderService.NewOrderServiceImpl(orderRepo, validation)
 	orderHdl := orderHandler.NewOrderHandlerImpl(orderSvc)
 	//Vehicle
 	vehicleRepo := repository.NewVehicleRepositoryImpl(db)
-	vehicleSvc := service.NewVehicleServiceImpl(vehicleRepo)
+	vehicleSvc := service.NewVehicleServiceImpl(vehicleRepo, validation)
 	vehicleHhl := handler.NewVehicleHandlerImpl(vehicleSvc)
 	//Geo
 	geoHandler := handler2.NewGeoapify(db, config.GeoKey)

@@ -13,11 +13,11 @@ type locationRepositoryImpl struct {
 	DB *gorm.DB
 }
 
-func (repository *locationRepositoryImpl) TotalData() (int64, error) {
+func (repository *locationRepositoryImpl) TotalData(companyID string) (int64, error) {
 	var location model.Location
 	var total int64
 
-	result := repository.DB.Model(&location).Count(&total)
+	result := repository.DB.Model(&location).Where("company_id = ?", companyID).Count(&total)
 	if result.Error != nil {
 		return -1, result.Error
 	}
@@ -31,7 +31,7 @@ type LocationRepositoryInterface interface {
 	Insert(payload *model.Location) (*model.Location, error)
 	Update(payload *model.Location, uuid string) (*model.Location, error)
 	Delete(uuid string) error
-	TotalData() (int64, error)
+	TotalData(companyID string) (int64, error)
 	GetCompanyUser(uuid string) (*userModel.User, error)
 	FIndByNote(string2 string, payload *[]model.Location) error
 }

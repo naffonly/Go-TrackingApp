@@ -14,7 +14,7 @@ type userRepositoryImpl struct {
 }
 
 type UserRepositoryInterface interface {
-	FindAll(pagination pagination.QueryParam) ([]userModel.User, error)
+	FindAll(pagination pagination.QueryParam, companyID string) ([]userModel.User, error)
 	FindById(uuid string) (*userModel.User, error)
 	Insert(payload *userModel.User) (*userModel.User, error)
 	Update(payload *userModel.User, uuid string) (*userModel.User, error)
@@ -22,7 +22,7 @@ type UserRepositoryInterface interface {
 	GetUsername(username string, data *[]userModel.User) error
 	UsernameAvailable(username string) error
 	EmailAvailable(email string) error
-	TotalData() (int64, error)
+	TotalData(companyID string) (int64, error)
 	GetCurrentCompany(uuid string) (*userModel.User, error)
 }
 
@@ -49,12 +49,12 @@ func (repository *userRepositoryImpl) GetUsername(username string, data *[]userM
 	return nil
 }
 
-func (repository *userRepositoryImpl) FindAll(pagination pagination.QueryParam) ([]userModel.User, error) {
+func (repository *userRepositoryImpl) FindAll(pagination pagination.QueryParam, companyID string) ([]userModel.User, error) {
 	var payload []userModel.User
 
 	var offset = (pagination.Page - 1) * pagination.Size
 
-	result := repository.DB.Preload("Company").Offset(offset).Limit(pagination.Size).Find(&payload)
+	result := repository.DB.Preload("Company").Where("company_id=?", companyID).Offset(offset).Limit(pagination.Size).Find(&payload)
 	if result.Error != nil {
 		panic(result.Error)
 		return nil, result.Error
@@ -121,10 +121,10 @@ func (repository *userRepositoryImpl) EmailAvailable(email string) error {
 	return nil
 }
 
-func (repository *userRepositoryImpl) TotalData() (int64, error) {
+func (repository *userRepositoryImpl) TotalData(companyID string) (int64, error) {
 	var user userModel.User
 	var total int64
-	result := repository.DB.Model(&user).Count(&total)
+	result := repository.DB.Model(&user).Where("company_id = ? ", companyID).Count(&total)
 	if result.Error != nil {
 		return -1, result.Error
 	}

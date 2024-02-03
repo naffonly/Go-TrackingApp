@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/go-playground/validator/v10"
 	uuid2 "github.com/google/uuid"
 	model2 "trackingApp/features/location/model"
 	"trackingApp/features/order/model"
@@ -12,6 +13,7 @@ import (
 
 type orderServiceImpl struct {
 	Repository repository.OrderInterfaceInterface
+	Validation *validator.Validate
 }
 
 type OrderServiceInterface interface {
@@ -23,8 +25,11 @@ type OrderServiceInterface interface {
 	GetCustomerName(name string, ownerRole string, ownerId string) (*[]model.Order, error)
 }
 
-func NewOrderServiceImpl(repo repository.OrderInterfaceInterface) OrderServiceInterface {
-	return &orderServiceImpl{Repository: repo}
+func NewOrderServiceImpl(repo repository.OrderInterfaceInterface, valid *validator.Validate) OrderServiceInterface {
+	return &orderServiceImpl{
+		Repository: repo,
+		Validation: valid,
+	}
 }
 
 func (service *orderServiceImpl) FindAll(param pagination.QueryParam, ownerRole string, ownerId string) ([]model.Order, *pagination.Pagination, error) {
@@ -113,6 +118,10 @@ func (service *orderServiceImpl) Insert(payload *model.OrderDTO, ownerRole strin
 			Type:      payload.PickupLocation.Type,
 			Note:      payload.PickupLocation.Note,
 		},
+	}
+	err := service.Validation.Struct(payload)
+	if err != nil {
+		return nil, errors.New("validation failed please check your input and try again")
 	}
 
 	rs, err := service.Repository.Insert(&newPayload)

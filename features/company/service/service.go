@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/go-playground/validator/v10"
 	uuid2 "github.com/google/uuid"
 	"strconv"
 	"trackingApp/features/company/model"
@@ -11,7 +12,8 @@ import (
 )
 
 type companyServiceImpl struct {
-	repo repository.CompanyRepositoryInterface
+	repo      repository.CompanyRepositoryInterface
+	validator *validator.Validate
 }
 
 type CompanyServiceInterface interface {
@@ -23,8 +25,11 @@ type CompanyServiceInterface interface {
 	FindAll(pagination response.QueryParam, ownerRole string, ownerId string) ([]model.Company, *response.Pagination, error)
 }
 
-func NewCompanyServiceInterface(repository repository.CompanyRepositoryInterface) CompanyServiceInterface {
-	return &companyServiceImpl{repo: repository}
+func NewCompanyServiceInterface(repository repository.CompanyRepositoryInterface, valid *validator.Validate) CompanyServiceInterface {
+	return &companyServiceImpl{
+		repo:      repository,
+		validator: valid,
+	}
 }
 
 func (c *companyServiceImpl) GetCompanyName(name string, ownerRole string, ownerId string) (*[]model.Company, error) {
@@ -48,6 +53,11 @@ func (c *companyServiceImpl) Insert(payload *model.CompanyDTO, ownerRole string,
 		return nil, errors.New("your not allowed")
 	}
 
+	err := c.validator.Struct(payload)
+	if err != nil {
+		return nil, errors.New("validation failed please check your input and try again")
+	}
+
 	rs := c.repo.CompanyAvailable(payload.Name)
 	if rs != nil {
 		return nil, rs
@@ -68,6 +78,11 @@ func (c *companyServiceImpl) Update(payload *model.CompanyDTO, uuid string, owne
 	owner, _ := strconv.Atoi(ownerRole)
 	if owner != 1 {
 		return nil, errors.New("your not allowed")
+	}
+
+	err := c.validator.Struct(payload)
+	if err != nil {
+		return nil, errors.New("validation failed please check your input and try again")
 	}
 
 	newPayload := model.Company{

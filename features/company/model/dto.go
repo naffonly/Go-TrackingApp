@@ -1,7 +1,7 @@
 package model
 
 type CompanyDTO struct {
-	Name    string `json:"name"`
-	Address string `json:"address"`
-	Phone   string `json:"phone"`
+	Name    string `json:"name" validate:"required"`
+	Address string `json:"address" validate:"required"`
+	Phone   string `json:"phone" validate:"required"`
 }

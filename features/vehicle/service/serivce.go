@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/go-playground/validator/v10"
 	uuid2 "github.com/google/uuid"
 	"strings"
 	"trackingApp/features/vehicle/model"
@@ -12,6 +13,7 @@ import (
 
 type vehicleServiceImpl struct {
 	repository repository.VehicleRpositoryInterface
+	Validation *validator.Validate
 }
 
 type VehicleServiceInterface interface {
@@ -23,8 +25,11 @@ type VehicleServiceInterface interface {
 	Delete(uuid string, ownerRole string, ownerId string) error
 }
 
-func NewVehicleServiceImpl(repository repository.VehicleRpositoryInterface) VehicleServiceInterface {
-	return &vehicleServiceImpl{repository: repository}
+func NewVehicleServiceImpl(repository repository.VehicleRpositoryInterface, valid *validator.Validate) VehicleServiceInterface {
+	return &vehicleServiceImpl{
+		repository: repository,
+		Validation: valid,
+	}
 }
 
 func (service *vehicleServiceImpl) FindAll(param pagination.QueryParam, ownerRole string, ownerId string) ([]model.Vehicle, *pagination.Pagination, error) {
@@ -77,6 +82,11 @@ func (service *vehicleServiceImpl) FindById(uuid string, ownerRole string, owner
 }
 
 func (service *vehicleServiceImpl) Insert(payload *model.VehicleDTO, ownerRole string, ownerId string) (*model.VehicleResponse, error) {
+	err := service.Validation.Struct(payload)
+	if err != nil {
+		return nil, errors.New("validation failed please check your input and try again")
+	}
+
 	uuid, _ := uuid2.NewRandom()
 
 	user, err := service.repository.GetCompanyUser(ownerId)
@@ -106,6 +116,10 @@ func (service *vehicleServiceImpl) Insert(payload *model.VehicleDTO, ownerRole s
 }
 
 func (service *vehicleServiceImpl) Update(payload *model.VehicleDTO, uuid string, ownerRole string, ownerId string) (*model.Vehicle, error) {
+	err := service.Validation.Struct(payload)
+	if err != nil {
+		return nil, errors.New("validation failed please check your input and try again")
+	}
 
 	newPayload := &model.Vehicle{
 		PlatNumber: strings.ToUpper(payload.PlatNumber),
