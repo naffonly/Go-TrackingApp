@@ -72,6 +72,7 @@ func locationRoutes(router *gin.RouterGroup, handlerInterface locationHandler.Lo
 func orderRoutes(router *gin.RouterGroup, handlerInterface orderHandler.OrderHandlerInterface) {
 	router.GET("/order", handlerInterface.FindAll())
 	router.GET("/order/:id", handlerInterface.FindByID())
+	router.GET("/order-identity/:identity", handlerInterface.GetIdentity())
 	router.POST("/order", handlerInterface.Insert())
 	router.PUT("/order/:id", handlerInterface.Update())
 	router.DELETE("/order/:id", handlerInterface.Delete())

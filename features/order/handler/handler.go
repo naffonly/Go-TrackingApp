@@ -24,10 +24,34 @@ type OrderHandlerInterface interface {
 	Insert() gin.HandlerFunc
 	Update() gin.HandlerFunc
 	Delete() gin.HandlerFunc
+	GetIdentity() gin.HandlerFunc
 }
 
 func NewOrderHandlerImpl(service service.OrderServiceInterface) OrderHandlerInterface {
 	return &orderHandlerImpl{Service: service}
+}
+
+func (handler *orderHandlerImpl) GetIdentity() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		identity := c.Param("identity")
+		ownerId, ownerRole, err := token.ExtractTokenID(c)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, pagination.FormatResponse(err.Error(), nil, http.StatusBadRequest))
+			c.Abort()
+			return
+		}
+
+		rs, err := handler.Service.GetIdentity(identity, ownerRole, ownerId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, pagination.FormatResponse(err.Error(), nil, http.StatusBadRequest))
+			c.Abort()
+			return
+		}
+		msg = "success get data"
+		data := pagination.FormatResponse(msg, rs, http.StatusOK)
+
+		c.JSON(http.StatusOK, data)
+	}
 }
 
 func (handler *orderHandlerImpl) FindAll() gin.HandlerFunc {

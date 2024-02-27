@@ -23,10 +23,21 @@ type OrderInterfaceInterface interface {
 	GetCustomerName(name string, data *[]model.Order) error
 	TotalData(company string) (int64, error)
 	GetCurrentCompany(uuid string) (*userModel.User, error)
+	GetIdentity(identity string, company string) (*model.Order, error)
 }
 
 func NewOrderRepositoryImpl(Db *gorm.DB) OrderInterfaceInterface {
 	return &orderRepositoryImpl{DB: Db}
+}
+
+func (repo *orderRepositoryImpl) GetIdentity(identity string, company string) (*model.Order, error) {
+	var payload model.Order
+	rs := repo.DB.Preload("Company").Preload("Vehicle").Preload("PickupLocation").Preload("DropoffLocation").Where("identity = ?", identity).Where("company_id=?", company).First(&payload)
+
+	if rs.Error != nil {
+		return nil, errors.New("data not found")
+	}
+	return &payload, nil
 }
 
 func (repo *orderRepositoryImpl) GetCurrentCompany(uuid string) (*userModel.User, error) {

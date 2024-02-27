@@ -23,6 +23,7 @@ type OrderServiceInterface interface {
 	Update(payload *model.OrderDTO, uuid string, ownerRole string, ownerId string) (*model.Order, error)
 	Delete(uuid string, ownerRole string, ownerId string) error
 	GetCustomerName(name string, ownerRole string, ownerId string) (*[]model.Order, error)
+	GetIdentity(identity string, ownerRole string, ownerId string) (*model.Order, error)
 }
 
 func NewOrderServiceImpl(repo repository.OrderInterfaceInterface, valid *validator.Validate) OrderServiceInterface {
@@ -30,6 +31,19 @@ func NewOrderServiceImpl(repo repository.OrderInterfaceInterface, valid *validat
 		Repository: repo,
 		Validation: valid,
 	}
+}
+
+func (service *orderServiceImpl) GetIdentity(identity string, ownerRole string, ownerId string) (*model.Order, error) {
+	user, err := service.Repository.GetCurrentCompany(ownerId)
+	if err != nil {
+		return nil, err
+	}
+	order, err := service.Repository.GetIdentity(identity, user.CompanyID)
+	if err != nil {
+		return nil, err
+	}
+
+	return order, nil
 }
 
 func (service *orderServiceImpl) FindAll(param pagination.QueryParam, ownerRole string, ownerId string) ([]model.Order, *pagination.Pagination, error) {
